@@ -542,6 +542,7 @@ class InstagramExtractor(Extractor):
             return None
         elif not cursor:
             self._update_cursor = util.identity
+            return None
         return cursor
 
     def _update_cursor(self, cursor):
@@ -1262,11 +1263,14 @@ class InstagramAPI():
 
         try:
             data = util.json_loads(result)
-            return (data["data"] if fieldname is None else
-                    data["data"][fieldname])
+            res = (data["data"] if fieldname is None else
+                   data["data"][fieldname])
+            if res is None:
+                raise KeyError
+            return res
         except ValueError as exc:
             msg = f"Failed to load API data ({exc.__class__.__name__}: {exc})"
-        except KeyError:
+        except (KeyError, TypeError):
             if err := data.get("errors"):
                 msg = f'"{err[0]["message"]}"'
             elif err := data.get("errorDescription"):
